@@ -22,6 +22,10 @@ var camera, scene, renderer, geometry, material, composer, controls, light;
 
 var isMusic = false;
 
+// Pour la gravité
+var gravityRaycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0,-1,0), 0, 2.5 + 1);
+
+
 var raycaster = new THREE.Raycaster();
 
 // Listener pour l'audio lors du click
@@ -294,15 +298,28 @@ function animate() {
 
     }
 
-    if(verticalSpeed != 0){
-        controls.getObject().translateY(delta * verticalSpeed);
-    }
+    // Gravité (on tombe si on est pas sur un block)
+    gravityRaycaster.set(controls.getObject().position, new THREE.Vector3(0,-1,0))
+    var intersectBelow = gravityRaycaster.intersectObjects(scene.children);
 
-    if(controls.getObject().position.y > 1){
-        verticalSpeed--;
-    }else{
-        controls.getObject().position.y = 1;
-        verticalSpeed == 0;
+    if(intersectBelow.length > 0 && verticalSpeed < 20){
+            controls.getObject().position.y = intersectBelow[0].object.position.y + 2 + 1;
+            verticalSpeed = 0;
+            if (keys[32]) {
+                
+                verticalSpeed = 30
+
+            }
+        }else{
+            verticalSpeed --;
+        }
+
+        controls.getObject().translateY(delta * verticalSpeed);
+
+    // Si on tombe trop bas, on remonte
+    if(controls.getObject().position.y < -50){
+        controls.getObject().position.y = 50;
+        verticalSpeed = 0;
     }
 
     //Déplacement gauche (Q)
